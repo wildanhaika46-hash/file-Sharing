@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Sharing Multi-Pengguna</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .auth-section {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .auth-tab.active {
+            background: #4facfe;
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #4facfe;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3a9bf5;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .dashboard {
+            padding: 30px;
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .user-info span {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .upload-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .file-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px dashed #4facfe;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .file-card {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 10px;
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .file-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .file-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #4facfe;
+        }
+
+        .file-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .file-info {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .file-actions .btn {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .share-link {
+            background: #e8f4ff;
+            border: 1px solid #4facfe;
+            border-radius: 5px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            word-break: break-all;
+            display: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .upload-form {
+                flex-direction: column;
+            }
+            
+            .files-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 File Sharing</h1>
+            <p>Platform berbagi file untuk multi-pengguna</p>
+        </div>
+
+        <!-- Section Autentikasi -->
+        <div class="auth-section">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="showAuthForm('login')">Login</button>
+                <button class="auth-tab" onclick="showAuthForm('register')">Daftar</button>
+            </div>
+
+            <form id="loginForm" class="auth-form active">
+                <div class="form-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" required placeholder="Masukkan username">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required placeholder="Masukkan password">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="login()">Login</button>
+            </form>
+
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label for="registerUsername">Username</label>
+                    <input type="text" id="registerUsername" required placeholder="Buat username">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required placeholder="Masukkan email">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password</label>
+                    <input type="password" id="registerPassword" required placeholder="Buat password (min. 6 karakter)">
+                </div>
+                <button type="button" class="btn btn-success" onclick="register()">Daftar</button>
+            </form>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="dashboard">
+            <div class="user-info">
+                <span id="welcomeMessage">Selamat datang, User!</span>
+                <button class="btn btn-danger" onclick="logout()">Logout</button>
+            </div>
+
+            <div class="upload-section">
+                <h3>Upload File Baru</h3>
+                <div class="upload-form">
+                    <input type="file" id="fileInput" class="file-input" multiple>
+                    <button class="btn btn-primary" onclick="uploadFile()">Upload File</button>
+                </div>
+            </div>
+
+            <div id="filesContainer">
+                <h3>File Saya</h3>
+                <div id="filesList" class="files-grid">
+                    <!-- File cards akan ditampilkan di sini -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database simulasi menggunakan localStorage
+        const DB_USERS = 'file_sharing_users';
+        const DB_FILES = 'file_sharing_files';
+        let currentUser = null;
+
+        // Inisialisasi aplikasi
+        function initApp() {
+            if (!localStorage.getItem(DB_USERS)) {
+                localStorage.setItem(DB_USERS, JSON.stringify({}));
+            }
+            if (!localStorage.getItem(DB_FILES)) {
+                localStorage.setItem(DB_FILES, JSON.stringify({}));
+            }
+            
+            // Cek jika user sudah login
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showDashboard();
+            }
+        }
+
+        // Tampilkan form autentikasi
+        function showAuthForm(formType) {
+            document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+            
+            document.querySelector(`.auth-tab[onclick="showAuthForm('${formType}')"]`).classList.add('active');
+            document.getElementById(formType + 'Form').classList.add('active');
+        }
+
+        // Registrasi user baru
+        function register() {
+            const username = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+
+            if (username.length < 3) {
+                alert('Username harus minimal 3 karakter');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('Password harus minimal 6 karakter');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem(DB_USERS));
+            
+            if (users[username]) {
+                alert('Username sudah digunakan');
+                return;
+            }
+
+            // Simpan user baru
+            users[username] = {
+                username: username,
+                email: email,
+                password: password, // Dalam aplikasi real, hash password
+                createdAt: new Date().toISOString()
+            };
+
+            localStorage.setItem(DB_USERS, JSON.stringify(users));
+            alert('Registrasi berhasil! Silakan login.');
+            showAuthForm('login');
+            document.getElementById('registerForm').reset();
+        }
+
+        // Login user
+        function login() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            const users = JSON.parse(localStorage.getItem(DB_USERS));
+            const user = users[username];
+
+            if (!user || user.password !== password) {
+                alert('Username atau password salah');
+                return;
+            }
+
+            currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            showDashboard();
+        }
+
+        // Logout
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('loginForm').reset();
+            showAuthForm('login');
+        }
+
+        // Tampilkan dashboard
+        function showDashboard() {
+            document.getElementById('welcomeMessage').textContent = `Selamat datang, ${currentUser.username}!`;
+            document.getElementById('dashboard').classList.add('active');
+            loadUserFiles();
+        }
+
+        // Upload file
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+
+            if (files.length === 0) {
+                alert('Pilih file terlebih dahulu');
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Simulasi upload file (dalam aplikasi real, ini akan diupload ke server)
+                const fileData = {
+                    id: generateId(),
+                    filename: file.name,
+                    size: formatFileSize(file.size),
+                    type: file.type,
+                    owner: currentUser.username,
+                    uploadedAt: new Date().toISOString(),
+                    // Dalam aplikasi real, file akan disimpan di server
+                    // Untuk demo, kita simpan metadata saja
+                    content: 'File content would be stored here in real app'
+                };
+
+                saveFile(fileData);
+            }
+
+            fileInput.value = '';
+            loadUserFiles();
+            alert('File berhasil diupload!');
+        }
+
+        // Simpan file metadata
+        function saveFile(fileData) {
+            const files = JSON.parse(localStorage.getItem(DB_FILES));
+            files[fileData.id] = fileData;
+            localStorage.setItem(DB_FILES, JSON.stringify(files));
+        }
+
+        // Load file user
+        function loadUserFiles() {
+            const files = JSON.parse(localStorage.getItem(DB_FILES));
+            const userFiles = Object.values(files).filter(file => file.owner === currentUser.username);
+            const filesList = document.getElementById('filesList');
+
+            if (userFiles.length === 0) {
+                filesList.innerHTML = `
+                    <div class="empty-state">
+                        <div>📁</div>
+                        <h3>Belum ada file</h3>
+                        <p>Upload file pertama Anda untuk memulai</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filesList.innerHTML = userFiles.map(file => `
+                <div class="file-card">
+                    <div class="file-icon">${getFileIcon(file.type)}</div>
+                    <div class="file-name">${file.filename}</div>
+                    <div class="file-info">
+                        Size: ${file.size} • ${new Date(file.uploadedAt).toLocaleDateString('id-ID')}
+                    </div>
+                    <div class="file-actions">
+                        <button class="btn btn-primary" onclick="downloadFile('${file.id}')">Download</button>
+                        <button class="btn btn-success" onclick="shareFile('${file.id}')">Share</button>
+                        <button class="btn btn-danger" onclick="deleteFile('${file.id}')">Hapus</button>
+                    </div>
+                    <div id="shareLink-${file.id}" class="share-link">
+                        Link berbagi: ${window.location.href.split('?')[0]}?share=${file.id}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Download file (simulasi)
+        function downloadFile(fileId) {
+            const files = JSON.parse(localStorage.getItem(DB_FILES));
+            const file = files[fileId];
+            
+            if (!file) {
+                alert('File tidak ditemukan');
+                return;
+            }
+
+            // Dalam aplikasi real, ini akan mengunduh file dari server
+            // Untuk demo, kita buat blob simulasi
+            const blob = new Blob([`Ini adalah konten file: ${file.filename}\n\nFile ini diupload oleh: ${file.owner}\nTanggal: ${file.uploadedAt}`], 
+                { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.filename;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert(`File "${file.filename}" berhasil diunduh!`);
+        }
+
+        // Share file
+        function shareFile(fileId) {
+            const shareLink = document.getElementById(`shareLink-${fileId}`);
+            shareLink.style.display = shareLink.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Hapus file
+        function deleteFile(fileId) {
+            if (!confirm('Yakin ingin menghapus file ini?')) return;
+
+            const files = JSON.parse(localStorage.getItem(DB_FILES));
+            delete files[fileId];
+            localStorage.setItem(DB_FILES, JSON.stringify(files));
+            loadUserFiles();
+            alert('File berhasil dihapus!');
+        }
+
+        // Helper functions
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getFileIcon(fileType) {
+            if (fileType.includes('image')) return '🖼️';
+            if (fileType.includes('pdf')) return '📄';
+            if (fileType.includes('word') || fileType.includes('document')) return '📝';
+            if (fileType.includes('spreadsheet') || fileType.includes('excel')) return '📊';
+            if (fileType.includes('video')) return '🎬';
+            if (fileType.includes('audio')) return '🎵';
+            if (fileType.includes('zip') || fileType.includes('archive')) return '📦';
+            return '📁';
+        }
+
+        // Handle share link dari URL
+        function handleShareLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareId = urlParams.get('share');
+            
+            if (shareId) {
+                const files = JSON.parse(localStorage.getItem(DB_FILES));
+                const file = files[shareId];
+                
+                if (file) {
+                    if (confirm(`Anda ingin mendownload file "${file.filename}" yang dibagikan?`)) {
+                        downloadFile(shareId);
+                    }
+                    // Hapus parameter share dari URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+        }
+
+        // Inisialisasi saat halaman load
+        window.onload = function() {
+            initApp();
+            handleShareLink();
+        };
+    </script>
+</body>
+</html>
